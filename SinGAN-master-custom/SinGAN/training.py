@@ -1,5 +1,5 @@
 import SinGAN.functions as functions
-import SinGAN.models as models
+import SinGAN.modelsCustom as models
 import os
 import torch.nn as nn
 import torch.optim as optim
@@ -11,11 +11,12 @@ import SinGAN.customFuncs as customFuncs
 
 def train(opt,Gs,Zs,reals,NoiseAmp):
     real_ = functions.read_image(opt)
-    customFuncs.convert_2dto3d(real_)
+    real3D = customFuncs.get3D(real_)
     in_s = 0
     scale_num = 0
     real = imresize(real_,opt.scale1,opt)
     reals = functions.creat_reals_pyramid(real,reals,opt)
+    reals3D = customFuncs.get3DPyramid(reals)
     nfc_prev = 0
 
     while scale_num<opt.stop_scale+1:
@@ -38,7 +39,7 @@ def train(opt,Gs,Zs,reals,NoiseAmp):
             G_curr.load_state_dict(torch.load('%s/%d/netG.pth' % (opt.out_,scale_num-1)))
             D_curr.load_state_dict(torch.load('%s/%d/netD.pth' % (opt.out_,scale_num-1)))
 
-        z_curr,in_s,G_curr = train_single_scale(D_curr,G_curr,reals,Gs,Zs,in_s,NoiseAmp,opt)
+        z_curr,in_s,G_curr = train_single_scale(D_curr,G_curr,reals3D,Gs,Zs,in_s,NoiseAmp,opt)
 
         G_curr = functions.reset_grads(G_curr,False)
         G_curr.eval()
@@ -61,9 +62,9 @@ def train(opt,Gs,Zs,reals,NoiseAmp):
 
 
 
-def train_single_scale(netD,netG,reals,Gs,Zs,in_s,NoiseAmp,opt,centers=None):
+def train_single_scale(netD,netG,reals3D,Gs,Zs,in_s,NoiseAmp,opt,centers=None):
 
-    real = reals[len(Gs)]
+    real = reals3D[len(Gs)]
     opt.nzx = real.shape[2]#+(opt.ker_size-1)*(opt.num_layer)
     opt.nzy = real.shape[3]#+(opt.ker_size-1)*(opt.num_layer)
     opt.receptive_field = opt.ker_size + ((opt.ker_size-1)*(opt.num_layer-1))*opt.stride
