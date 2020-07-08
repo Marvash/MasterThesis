@@ -57,7 +57,7 @@ def imresize(im,scale,opt):
 def imresize_to_shape(im,output_shape,opt):
     #s = im.shape
     im = torch2uint8(im)
-    im = imresize_in(im, output_shape=output_shape)
+    im = imresize_in(im, output_shape=output_shape, kernel='linear')
     im = np2torch(im,opt)
     #im = im[:, :, 0:int(scale * s[2]), 0:int(scale * s[3])]
     return im

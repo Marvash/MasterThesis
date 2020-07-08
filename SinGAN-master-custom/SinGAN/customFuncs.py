@@ -16,25 +16,28 @@ def get3D(toConvert):
     print(expandedTensor.shape)
     for i in range(0, toConvert.shape[2]):
         for j in range(0, toConvert.shape[3]):
-            expandedTensor[0][0][i][j][(math.floor(toConvert.shape[3]/2)-1)] = 1 - norm01(toConvert[0][0][i][j])
+            expandedTensor[0][0][i][j][(math.floor(toConvert.shape[3]/2)-1)] = (1 - norm01(toConvert[0][0][i][j])) > 0.5
     #print(expandedTensor[0][0][37][32][31])
     #print(expandedTensor[0][0][38][32][30])
     #print(expandedTensor[0][0][39][32][31])
     #plt.imshow(tmp.permute((1, 2, 0)).cpu().numpy())
     #plt.show()
     tmp = expandedTensor[0][0][:][:][:]
-    fig = plt.figure()
-    ax = fig.gca(projection='3d')
-    ax.voxels(tmp, edgecolor='k')
+    #fig = plt.figure()
+    #ax = fig.gca(projection='3d')
+    #ax.voxels(tmp, edgecolor='k')
 
     plt.show()
     return expandedTensor
     
 def get3DPyramid(reals):
-    reals3D = []
-    for real in reals:
-        reals3D.append(get3D(real))
-    return reals3D
+	reals3D = []
+	for real in reals:
+		tmp = real[0][:][:][:]
+		#plt.imshow(tmp.permute((1, 2, 0)).cpu().numpy())
+		#plt.show()
+		reals3D.append(get3D(real))
+	return reals3D
     
 def norm01(num):
     return (num+1)/(2)

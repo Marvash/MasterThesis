@@ -74,13 +74,15 @@ def train_single_scale(netD,netG,reals3D,Gs,Zs,in_s,NoiseAmp,opt,centers=None):
         opt.nzx = real.shape[2]+(opt.ker_size-1)*(opt.num_layer)
         opt.nzy = real.shape[3]+(opt.ker_size-1)*(opt.num_layer)
         pad_noise = 0
-    m_noise = nn.ZeroPad2d(int(pad_noise))
-    m_image = nn.ZeroPad2d(int(pad_image))
+    m_noise = nn.ZeroPad2d(int(pad_noise)) #switch to 3d pad
+    m_image = nn.ZeroPad2d(int(pad_image)) #switch to 3d pad
 
     alpha = opt.alpha
-
-    fixed_noise = functions.generate_noise([opt.nc_z,opt.nzx,opt.nzy],device=opt.device)
+    
+    fixed_noise = functions.generate_noise([opt.nc_z,opt.nzx,opt.nzy],device=opt.device) #noise same shape of real
+    print(fixed_noise)
     z_opt = torch.full(fixed_noise.shape, 0, device=opt.device)
+    print(z_opt)
     z_opt = m_noise(z_opt)
 
     # setup optimizer
@@ -101,6 +103,8 @@ def train_single_scale(netD,netG,reals3D,Gs,Zs,in_s,NoiseAmp,opt,centers=None):
             z_opt = m_noise(z_opt.expand(1,3,opt.nzx,opt.nzy))
             noise_ = functions.generate_noise([1,opt.nzx,opt.nzy], device=opt.device)
             noise_ = m_noise(noise_.expand(1,3,opt.nzx,opt.nzy))
+            print(noise_)
+            print(noise_.shape)
         else:
             noise_ = functions.generate_noise([opt.nc_z,opt.nzx,opt.nzy], device=opt.device)
             noise_ = m_noise(noise_)
