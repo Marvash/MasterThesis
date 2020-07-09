@@ -67,6 +67,7 @@ def train_single_scale(netD,netG,reals3D,Gs,Zs,in_s,NoiseAmp,opt,centers=None):
     real = reals3D[len(Gs)]
     opt.nzx = real.shape[2]#+(opt.ker_size-1)*(opt.num_layer)
     opt.nzy = real.shape[3]#+(opt.ker_size-1)*(opt.num_layer)
+    opt.nzz = real.shape[4]
     opt.receptive_field = opt.ker_size + ((opt.ker_size-1)*(opt.num_layer-1))*opt.stride
     pad_noise = int(((opt.ker_size - 1) * opt.num_layer) / 2)
     pad_image = int(((opt.ker_size - 1) * opt.num_layer) / 2)
@@ -74,16 +75,19 @@ def train_single_scale(netD,netG,reals3D,Gs,Zs,in_s,NoiseAmp,opt,centers=None):
         opt.nzx = real.shape[2]+(opt.ker_size-1)*(opt.num_layer)
         opt.nzy = real.shape[3]+(opt.ker_size-1)*(opt.num_layer)
         pad_noise = 0
-    m_noise = nn.ZeroPad2d(int(pad_noise)) #switch to 3d pad
-    m_image = nn.ZeroPad2d(int(pad_image)) #switch to 3d pad
+    #m_noise = nn.ZeroPad2d(int(pad_noise)) #switch to 3d pad
+    #m_image = nn.ZeroPad2d(int(pad_image)) #switch to 3d pad
 
     alpha = opt.alpha
     
-    fixed_noise = functions.generate_noise([opt.nc_z,opt.nzx,opt.nzy],device=opt.device) #noise same shape of real
-    print(fixed_noise)
-    z_opt = torch.full(fixed_noise.shape, 0, device=opt.device)
-    print(z_opt)
-    z_opt = m_noise(z_opt)
+    #fixed_noise = functions.generate_noise([opt.nc_z,opt.nzx,opt.nzy],device=opt.device) #noise same shape of real
+    fixed_noise3D = functions.generate_noise3D([1, opt.nzx, opt.nzy, opt.nzz], device=opt.device)
+    #print(fixed_noise)
+    #z_opt = torch.full(fixed_noise.shape, 0, device=opt.device)
+    z_opt3D = torch.full(fixed_noise3D.shape, 0, device=opt.device)
+    #print(z_opt)
+    #z_opt = m_noise(z_opt)
+    nn.functional.pad(z_opt3D, (5, 5, 5, 5, 5, 5), 'constant', 0)
 
     # setup optimizer
     optimizerD = optim.Adam(netD.parameters(), lr=opt.lr_d, betas=(opt.beta1, 0.999))
@@ -99,15 +103,23 @@ def train_single_scale(netD,netG,reals3D,Gs,Zs,in_s,NoiseAmp,opt,centers=None):
 
     for epoch in range(opt.niter):
         if (Gs == []) & (opt.mode != 'SR_train'):
-            z_opt = functions.generate_noise([1,opt.nzx,opt.nzy], device=opt.device)
-            z_opt = m_noise(z_opt.expand(1,3,opt.nzx,opt.nzy))
-            noise_ = functions.generate_noise([1,opt.nzx,opt.nzy], device=opt.device)
-            noise_ = m_noise(noise_.expand(1,3,opt.nzx,opt.nzy))
-            print(noise_)
-            print(noise_.shape)
+            #z_opt = functions.generate_noise([1,opt.nzx,opt.nzy], device=opt.device)
+            z_opt3D = functions.generate_noise3D([1,opt.nzx,opt.nzy,opt.nzz], device=opt.device)
+            #z_opt = m_noise(z_opt.expand(1,3,opt.nzx,opt.nzy))
+            nn.functional.pad(z_opt3D, (5, 5, 5, 5, 5, 5), 'constant', 0)
+            #noise_ = functions.generate_noise([1,opt.nzx,opt.nzy], device=opt.device)
+            noise_3D = functions.generate_noise3D([1,opt.nzx,opt.nzy,opt.nzz], device=opt.device)
+            #noise_ = m_noise(noise_.expand(1,3,opt.nzx,opt.nzy))
+            nn.functional.pad(noise_3D, (5, 5, 5, 5, 5, 5), 'constant', 0)
+            #print(noise_)
+            #print(noise_.shape)
+            #print(z_opt)
+            #print(z_opt.shape)
         else:
-            noise_ = functions.generate_noise([opt.nc_z,opt.nzx,opt.nzy], device=opt.device)
-            noise_ = m_noise(noise_)
+            #noise_ = functions.generate_noise([opt.nc_z,opt.nzx,opt.nzy], device=opt.device)
+            noise_3D = functions.generate_noise3D([1,opt.nzx,opt.nzy,opt.nzz], device=opt.device)
+            #noise_ = m_noise(noise_)
+            nn.functional.pad(noise_3D, (5, 5, 5, 5, 5, 5), 'constant', 0)
 
         ############################
         # (1) Update D network: maximize D(x) + D(G(z))
@@ -125,11 +137,15 @@ def train_single_scale(netD,netG,reals3D,Gs,Zs,in_s,NoiseAmp,opt,centers=None):
             # train with fake
             if (j==0) & (epoch == 0):
                 if (Gs == []) & (opt.mode != 'SR_train'):
-                    prev = torch.full([1,opt.nc_z,opt.nzx,opt.nzy], 0, device=opt.device)
-                    in_s = prev
-                    prev = m_image(prev)
-                    z_prev = torch.full([1,opt.nc_z,opt.nzx,opt.nzy], 0, device=opt.device)
-                    z_prev = m_noise(z_prev)
+                    #prev = torch.full([1,opt.nc_z,opt.nzx,opt.nzy], 0, device=opt.device)
+                    prev3D = torch.full([1, 1, opt.nzx, opt.nzy, opt.nzz], 0, device=opt.device)
+                    in_s = prev3D
+                    #prev = m_image(prev)
+                    nn.functional.pad(prev3D, (5, 5, 5, 5, 5, 5), 'constant', 0)
+                    #z_prev = torch.full([1,opt.nc_z,opt.nzx,opt.nzy], 0, device=opt.device)
+                    z_prev3D = torch.full([1, 1, opt.nzx, opt.nzy, opt.nzz], 0, device=opt.device)
+                    #z_prev = m_noise(z_prev)
+                    nn.functional.pad(z_prev3D, (5, 5, 5, 5, 5, 5), 'constant', 0)
                     opt.noise_amp = 1
                 elif opt.mode == 'SR_train':
                     z_prev = in_s
@@ -139,7 +155,7 @@ def train_single_scale(netD,netG,reals3D,Gs,Zs,in_s,NoiseAmp,opt,centers=None):
                     z_prev = m_image(z_prev)
                     prev = z_prev
                 else:
-                    prev = draw_concat(Gs,Zs,reals,NoiseAmp,in_s,'rand',m_noise,m_image,opt)
+                    prev = draw_concat(Gs,Zs,reals3D,NoiseAmp,in_s,'rand',m_noise,m_image,opt)
                     prev = m_image(prev)
                     z_prev = draw_concat(Gs,Zs,reals,NoiseAmp,in_s,'rec',m_noise,m_image,opt)
                     criterion = nn.MSELoss()
@@ -159,7 +175,7 @@ def train_single_scale(netD,netG,reals3D,Gs,Zs,in_s,NoiseAmp,opt,centers=None):
             else:
                 noise = opt.noise_amp*noise_+prev
 
-            fake = netG(noise.detach(),prev)
+            fake = netG(noise.detach(),prev) #error here
             output = netD(fake.detach())
             errD_fake = output.mean()
             errD_fake.backward(retain_graph=True)
@@ -225,6 +241,46 @@ def train_single_scale(netD,netG,reals3D,Gs,Zs,in_s,NoiseAmp,opt,centers=None):
     functions.save_networks(netG,netD,z_opt,opt)
     return z_opt,in_s,netG    
 
+def draw_concat3D(Gs,Zs,reals,NoiseAmp,in_s,mode,m_noise,m_image,opt):
+    G_z = in_s
+    if len(Gs) > 0:
+        if mode == 'rand':
+            count = 0
+            pad_noise = int(((opt.ker_size-1)*opt.num_layer)/2)
+            if opt.mode == 'animation_train':
+                pad_noise = 0
+            for G,Z_opt,real_curr,real_next,noise_amp in zip(Gs,Zs,reals,reals[1:],NoiseAmp):
+                if count == 0:
+                    #z = functions.generate_noise([1, Z_opt.shape[2] - 2 * pad_noise, Z_opt.shape[3] - 2 * pad_noise], device=opt.device)
+                    z3D = functions.generate_noise3D([1, Z_opt.shape[2] - 2 * pad_noise, Z_opt.shape[3] - 2 * pad_noise, Z_opt.shape[4] - 2 * pad_noise], device=opt.device)
+                    #z = z.expand(1, 3, z.shape[2], z.shape[3])
+                else:
+                    #z = functions.generate_noise([opt.nc_z,Z_opt.shape[2] - 2 * pad_noise, Z_opt.shape[3] - 2 * pad_noise], device=opt.device)
+                    z3D = functions.generate_noise3D([1, Z_opt.shape[2] - 2 * pad_noise, Z_opt.shape[3] - 2 * pad_noise, Z_opt.shape[4] - 2 * pad_noise], device=opt.device)
+                #z = m_noise(z)
+                nn.functional.pad(z3D, (5, 5, 5, 5, 5, 5), 'constant', 0)
+                G_z = G_z[:,:,0:real_curr.shape[2],0:real_curr.shape[3], 0:real_curr.shape[4]]
+                #G_z = m_image(G_z)
+                nn.functional.pad(G_z, (5, 5, 5, 5, 5, 5), 'constant', 0)
+                z_in = noise_amp*z+G_z
+                G_z = G(z_in.detach(),G_z)
+                G_z = imresize(G_z,1/opt.scale_factor,opt)
+                G_z = G_z[:,:,0:real_next.shape[2],0:real_next.shape[3]]
+                count += 1
+        if mode == 'rec':
+            count = 0
+            for G,Z_opt,real_curr,real_next,noise_amp in zip(Gs,Zs,reals,reals[1:],NoiseAmp):
+                G_z = G_z[:, :, 0:real_curr.shape[2], 0:real_curr.shape[3]]
+                G_z = m_image(G_z)
+                z_in = noise_amp*Z_opt+G_z
+                G_z = G(z_in.detach(),G_z)
+                G_z = imresize(G_z,1/opt.scale_factor,opt)
+                G_z = G_z[:,:,0:real_next.shape[2],0:real_next.shape[3]]
+                #if count != (len(Gs)-1):
+                #    G_z = m_image(G_z)
+                count += 1
+    return G_z
+    
 def draw_concat(Gs,Zs,reals,NoiseAmp,in_s,mode,m_noise,m_image,opt):
     G_z = in_s
     if len(Gs) > 0:

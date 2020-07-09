@@ -88,6 +88,21 @@ def generate_noise(size,num_samp=1,device='cuda',type='gaussian', scale=1):
         noise = torch.randn(num_samp, size[0], size[1], size[2], device=device)
     return noise
 
+def generate_noise3D(size,num_samp=1,device='cuda',type='gaussian', scale=1):
+    if type == 'gaussian':
+        noise = torch.randn(num_samp, size[0], round(size[1]/scale), round(size[2]/scale), round(size[3]/scale), device=device)
+        #print(noise.shape)
+        noise = upsampling(noise,size[1], size[2], size[3])
+        #print(noise.shape)
+    if type =='gaussian_mixture':
+        noise1 = torch.randn(num_samp, size[0], size[1], size[2], size[3], device=device)+5
+        noise2 = torch.randn(num_samp, size[0], size[1], size[2], size[3], device=device)
+        noise = noise1+noise2
+    if type == 'uniform':
+        noise = torch.randn(num_samp, size[0], size[1], size[2], size[3], device=device)
+    return noise
+
+
 def plot_learning_curves(G_loss,D_loss,epochs,label1,label2,name):
     fig,ax = plt.subplots(1)
     n = np.arange(0,epochs)
@@ -110,6 +125,10 @@ def plot_learning_curve(loss,epochs,name):
 
 def upsampling(im,sx,sy):
     m = nn.Upsample(size=[round(sx),round(sy)],mode='bilinear',align_corners=True)
+    return m(im)
+
+def upsampling3D(im,sx,sy,sz):
+    m = nn.Upsample(size=[round(sx),round(sy),round(sz)],mode='bilinear',align_corners=True)
     return m(im)
 
 def reset_grads(model,require_grad):
