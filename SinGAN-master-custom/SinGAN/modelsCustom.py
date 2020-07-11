@@ -51,7 +51,7 @@ class GeneratorConcatSkip2CleanAdd(nn.Module):
             block = ConvBlock(max(2*N,opt.min_nfc),max(N,opt.min_nfc),opt.ker_size,opt.padd_size,1)
             self.body.add_module('block%d'%(i+1),block)
         self.tail = nn.Sequential(
-            nn.Conv3d(max(N,opt.min_nfc),opt.nc_im,kernel_size=opt.ker_size,stride =1,padding=opt.padd_size),
+            nn.Conv3d(max(N,opt.min_nfc),1,kernel_size=opt.ker_size,stride =1,padding=opt.padd_size),
             nn.Tanh()
         )
     def forward(self,x,y):
@@ -59,5 +59,5 @@ class GeneratorConcatSkip2CleanAdd(nn.Module):
         x = self.body(x)
         x = self.tail(x)
         ind = int((y.shape[2]-x.shape[2])/2)
-        y = y[:,:,ind:(y.shape[2]-ind),ind:(y.shape[3]-ind)]
+        y = y[:,:,ind:(y.shape[2]-ind),ind:(y.shape[3]-ind),ind:(y.shape[4]-ind)]
         return x+y

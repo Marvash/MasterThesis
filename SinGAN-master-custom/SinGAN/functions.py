@@ -91,8 +91,9 @@ def generate_noise(size,num_samp=1,device='cuda',type='gaussian', scale=1):
 def generate_noise3D(size,num_samp=1,device='cuda',type='gaussian', scale=1):
     if type == 'gaussian':
         noise = torch.randn(num_samp, size[0], round(size[1]/scale), round(size[2]/scale), round(size[3]/scale), device=device)
+        #print("NOISE")
         #print(noise.shape)
-        noise = upsampling(noise,size[1], size[2], size[3])
+        noise = upsampling3D(noise,size[1], size[2], size[3])
         #print(noise.shape)
     if type =='gaussian_mixture':
         noise1 = torch.randn(num_samp, size[0], size[1], size[2], size[3], device=device)+5
@@ -128,7 +129,7 @@ def upsampling(im,sx,sy):
     return m(im)
 
 def upsampling3D(im,sx,sy,sz):
-    m = nn.Upsample(size=[round(sx),round(sy),round(sz)],mode='bilinear',align_corners=True)
+    m = nn.Upsample(size=[round(sx),round(sy),round(sz)],mode='trilinear',align_corners=True)
     return m(im)
 
 def reset_grads(model,require_grad):
@@ -150,7 +151,9 @@ def calc_gradient_penalty(netD, real_data, fake_data, LAMBDA, device):
     alpha = torch.rand(1, 1)
     alpha = alpha.expand(real_data.size())
     alpha = alpha.to(device)#cuda() #gpu) #if use_cuda else alpha
-
+    #print(alpha.shape)
+    #print(real_data.shape)
+    #print(fake_data.shape)
     interpolates = alpha * real_data + ((1 - alpha) * fake_data)
 
 
@@ -224,6 +227,7 @@ def adjust_scales2image(real_,opt):
     real = imresize(real_, opt.scale1, opt)
     #opt.scale_factor = math.pow(opt.min_size / (real.shape[2]), 1 / (opt.stop_scale))
     opt.scale_factor = math.pow(opt.min_size/(min(real.shape[2],real.shape[3])),1/(opt.stop_scale))
+    print(opt.scale_factor)
     scale2stop = math.ceil(math.log(min([opt.max_size, max([real_.shape[2], real_.shape[3]])]) / max([real_.shape[2], real_.shape[3]]),opt.scale_factor_init))
     opt.stop_scale = opt.num_scales - scale2stop
     return real
@@ -243,8 +247,12 @@ def adjust_scales2image_SR(real_,opt):
 
 def creat_reals_pyramid(real,reals,opt):
     real = real[:,0:3,:,:]
+    print(opt.stop_scale)
     for i in range(0,opt.stop_scale+1,1):
         scale = math.pow(opt.scale_factor,opt.stop_scale-i)
+        print(opt.stop_scale-i)
+        print(scale)
+        print(real.shape)
         curr_real = imresize(real,scale,opt)
         reals.append(curr_real)
     return reals

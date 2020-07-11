@@ -36,6 +36,20 @@ def np2torch(x,opt):
     #x = x.type(torch.cuda.FloatTensor)
     x = norm(x)
     return x
+    
+def np2torch3D(x,opt):
+    x = x[:,:,:,:,None]
+    x = x.transpose((4, 3, 0, 1, 2))/255
+    for i in range(0, x.shape[2]):
+        for j in range(0, x.shape[3]):
+            for k in range(0, x.shape[3]):
+                x[0][0][i][j][k] = x[0][0][i][j][k] > 0.5
+    x = torch.from_numpy(x)
+    if not (opt.not_cuda):
+        x = move_to_gpu(x)
+    x = x.type(torch.cuda.FloatTensor) if not(opt.not_cuda) else x.type(torch.FloatTensor)
+    #x = x.type(torch.cuda.FloatTensor)
+    return x
 
 def torch2uint8(x):
     x = x[0,:,:,:]
@@ -45,13 +59,29 @@ def torch2uint8(x):
     x = x.astype(np.uint8)
     return x
 
+def torch2uint83D(x):
+    x = x[0,:,:,:,:]
+    x = x.permute((1,2,3,0))
+    x = 255*x
+    x = x.cpu().numpy()
+    x = x.astype(np.uint8)
+    return x
 
 def imresize(im,scale,opt):
     #s = im.shape
     im = torch2uint8(im)
+    print(im.shape)
     im = imresize_in(im, scale_factor=scale)
     im = np2torch(im,opt)
     #im = im[:, :, 0:int(scale * s[2]), 0:int(scale * s[3])]
+    return im
+    
+def imresize3D(im,scale,opt):
+    im = torch2uint83D(im)
+    print(im.shape)
+    im = imresize_in(im, scale_factor=[scale, scale, scale], kernel='cubic')
+    #print(im.shape)
+    im = np2torch3D(im,opt)
     return im
 
 def imresize_to_shape(im,output_shape,opt):
@@ -66,6 +96,7 @@ def imresize_to_shape(im,output_shape,opt):
 def imresize_in(im, scale_factor=None, output_shape=None, kernel=None, antialiasing=True, kernel_shift_flag=False):
     # First standardize values and fill missing arguments (if needed) by deriving scale from output shape or vice versa
     scale_factor, output_shape = fix_scale_and_size(im.shape, output_shape, scale_factor)
+    #print(output_shape)
 
     # For a given numeric kernel case, just do convolution and sub-sampling (downscaling only)
     if type(kernel) == np.ndarray and scale_factor[0] <= 1:

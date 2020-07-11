@@ -33,4 +33,4 @@ if __name__ == '__main__':
     print(real.shape)
     functions.adjust_scales2image(real, opt)
     train(opt, Gs, Zs, reals, NoiseAmp)
-    #SinGAN_generate(Gs,Zs,reals,NoiseAmp,opt)
+    SinGAN_generate(Gs,Zs,reals,NoiseAmp,opt)
