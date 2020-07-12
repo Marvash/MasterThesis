@@ -40,10 +40,10 @@ def np2torch(x,opt):
 def np2torch3D(x,opt):
     x = x[:,:,:,:,None]
     x = x.transpose((4, 3, 0, 1, 2))/255
-    for i in range(0, x.shape[2]):
-        for j in range(0, x.shape[3]):
-            for k in range(0, x.shape[3]):
-                x[0][0][i][j][k] = x[0][0][i][j][k] > 0.5
+    #for i in range(0, x.shape[2]):
+    #    for j in range(0, x.shape[3]):
+    #        for k in range(0, x.shape[3]):
+    #            x[0][0][i][j][k] = x[0][0][i][j][k] > 0.5
     x = torch.from_numpy(x)
     if not (opt.not_cuda):
         x = move_to_gpu(x)
@@ -62,7 +62,7 @@ def torch2uint8(x):
 def torch2uint83D(x):
     x = x[0,:,:,:,:]
     x = x.permute((1,2,3,0))
-    x = 255*x
+    x = 255*denorm(x)
     x = x.cpu().numpy()
     x = x.astype(np.uint8)
     return x
@@ -78,7 +78,7 @@ def imresize(im,scale,opt):
     
 def imresize3D(im,scale,opt):
     im = torch2uint83D(im)
-    print(im.shape)
+    #print(im.shape)
     im = imresize_in(im, scale_factor=[scale, scale, scale], kernel='cubic')
     #print(im.shape)
     im = np2torch3D(im,opt)

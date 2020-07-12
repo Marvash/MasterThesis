@@ -18,7 +18,7 @@ def get3D(toConvert):
     for i in range(0, toConvert.shape[2]):
         for j in range(0, toConvert.shape[3]):
             Zcoord = (math.floor(toConvert.shape[3]/2)-1)
-            expandedTensor[0][0][i][j][Zcoord] = (1 - norm01(toConvert[0][0][i][j])) > 0.5
+            expandedTensor[0][0][i][j][Zcoord] = toConvert[0][0][i][j]#(1 - norm01(toConvert[0][0][i][j])) > 0.5
             expandedTensor[0][0][i][j][Zcoord+1] = expandedTensor[0][0][i][j][Zcoord]
             expandedTensor[0][0][i][j][Zcoord+2] = expandedTensor[0][0][i][j][Zcoord]
             expandedTensor[0][0][i][j][Zcoord-1] = expandedTensor[0][0][i][j][Zcoord]

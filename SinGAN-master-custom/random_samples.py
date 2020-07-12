@@ -3,7 +3,7 @@ from SinGAN.manipulate import *
 from SinGAN.training import *
 from SinGAN.imresize import imresize
 import SinGAN.functions as functions
-
+import shutil
 
 if __name__ == '__main__':
     parser = get_arguments()
@@ -15,6 +15,7 @@ if __name__ == '__main__':
     # for random_samples_arbitrary_sizes:
     parser.add_argument('--scale_h', type=float, help='horizontal resize factor for random samples', default=1.5)
     parser.add_argument('--scale_v', type=float, help='vertical resize factor for random samples', default=1)
+    parser.add_argument('--scale_z', type=float, help='vertical resize factor for random samples', default=1)
     opt = parser.parse_args()
     opt = functions.post_config(opt)
     Gs = []
@@ -38,7 +39,7 @@ if __name__ == '__main__':
             real = functions.read_image(opt)
             functions.adjust_scales2image(real, opt)
             Gs, Zs, reals, NoiseAmp = functions.load_trained_pyramid(opt)
-            in_s = functions.generate_in2coarsest(reals,1,1,opt)
+            in_s = functions.generate_in2coarsest(reals,1,1,1,opt)
             SinGAN_generate(Gs, Zs, reals, NoiseAmp, opt, gen_start_scale=opt.gen_start_scale)
 
         elif opt.mode == 'random_samples_arbitrary_sizes':

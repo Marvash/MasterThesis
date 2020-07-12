@@ -103,12 +103,12 @@ def SinGAN_generate(Gs,Zs,reals,NoiseAmp,opt,in_s=None,scale_v=1,scale_h=1,scale
 
         for i in range(0,num_samples,1):
             if n == 0:
-                z_curr = functions.generate_noise([1,nzx,nzy,nzz], device=opt.device)
+                z_curr = functions.generate_noise3D([1,nzx,nzy,nzz], device=opt.device)
                 z_curr = z_curr.expand(1,1,z_curr.shape[2],z_curr.shape[3],z_curr.shape[4])
                 #z_curr = m(z_curr)
                 nn.functional.pad(z_curr, (5, 5, 5, 5, 5, 5), 'constant', 0)
             else:
-                z_curr = functions.generate_noise([opt.nc_z,nzx,nzy], device=opt.device)
+                z_curr = functions.generate_noise3D([1,nzx,nzy,nzz], device=opt.device)
                 #z_curr = m(z_curr)
                 nn.functional.pad(z_curr, (5, 5, 5, 5, 5, 5), 'constant', 0)
 
@@ -137,6 +137,11 @@ def SinGAN_generate(Gs,Zs,reals,NoiseAmp,opt,in_s=None,scale_v=1,scale_h=1,scale
                 
             z_in = noise_amp*(z_curr)+I_prev
             I_curr = G(z_in.detach(),I_prev)
+            for i in range(0, I_curr.shape[2]):
+                for j in range(0, I_curr.shape[3]):
+                    for k in range(0, I_curr.shape[3]):
+                        I_curr[0][0][i][j][k] = I_curr[0][0][i][j][k] < 0
+            print(I_curr)
             tmp = I_curr[0][0][:][:][:]
             fig = plt.figure()
             ax = fig.gca(projection='3d')

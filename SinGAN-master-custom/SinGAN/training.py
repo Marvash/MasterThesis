@@ -168,7 +168,8 @@ def train_single_scale(netD,netG,reals3D,Gs,Zs,in_s,NoiseAmp,opt,centers=None):
                     prev = z_prev3D
                 else:
                     prev = draw_concat3D(Gs,Zs,reals3D,NoiseAmp,in_s,'rand',opt)
-                    prev = m_image(prev)
+                    #prev = m_image(prev)
+                    prev = nn.functional.pad(prev, (5, 5, 5, 5, 5, 5), 'constant', 0)
                     z_prev3D = draw_concat3D(Gs,Zs,reals3D,NoiseAmp,in_s,'rec',opt) # RECONSTRUCTION LOSS
                     criterion = nn.MSELoss()
                     RMSE = torch.sqrt(criterion(real, z_prev3D))
@@ -270,7 +271,7 @@ def draw_concat3D(Gs,Zs,reals3D,NoiseAmp,in_s,mode,opt):
             pad_noise = int(((opt.ker_size-1)*opt.num_layer)/2)
             if opt.mode == 'animation_train':
                 pad_noise = 0
-            for G,Z_opt,real_curr,real_next,noise_amp in zip(Gs,Zs,reals,reals[1:],NoiseAmp):
+            for G,Z_opt,real_curr,real_next,noise_amp in zip(Gs,Zs,reals3D,reals3D[1:],NoiseAmp):
                 if count == 0:
                     #z = functions.generate_noise([1, Z_opt.shape[2] - 2 * pad_noise, Z_opt.shape[3] - 2 * pad_noise], device=opt.device)
                     z3D = functions.generate_noise3D([1, Z_opt.shape[2] - 2 * pad_noise, Z_opt.shape[3] - 2 * pad_noise, Z_opt.shape[4] - 2 * pad_noise], device=opt.device)
@@ -290,7 +291,7 @@ def draw_concat3D(Gs,Zs,reals3D,NoiseAmp,in_s,mode,opt):
                 count += 1
         if mode == 'rec':
             count = 0
-            for G,Z_opt,real_curr,real_next,noise_amp in zip(Gs,Zs,reals,reals[1:],NoiseAmp):
+            for G,Z_opt,real_curr,real_next,noise_amp in zip(Gs,Zs,reals3D,reals3D[1:],NoiseAmp):
                 G_z = G_z[:, :, 0:real_curr.shape[2], 0:real_curr.shape[3],0:real_next.shape[4]]
                 #G_z = m_image(G_z)
                 G_z = nn.functional.pad(G_z, (5, 5, 5, 5, 5, 5), 'constant', 0)

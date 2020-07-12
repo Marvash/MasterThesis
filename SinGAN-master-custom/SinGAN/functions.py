@@ -275,13 +275,13 @@ def load_trained_pyramid(opt, mode_='train'):
     opt.mode = mode
     return Gs,Zs,reals,NoiseAmp
 
-def generate_in2coarsest(reals,scale_v,scale_h,opt):
+def generate_in2coarsest(reals,scale_v,scale_h,scale_z,opt):
     real = reals[opt.gen_start_scale]
-    real_down = upsampling(real, scale_v * real.shape[2], scale_h * real.shape[3])
+    real_down = upsampling3D(real, scale_v * real.shape[2], scale_h * real.shape[3], scale_z * real.shape[4])
     if opt.gen_start_scale == 0:
         in_s = torch.full(real_down.shape, 0, device=opt.device)
     else: #if n!=0
-        in_s = upsampling(real_down, real_down.shape[2], real_down.shape[3])
+        in_s = upsampling3D(real_down, real_down.shape[2], real_down.shape[3], real_down.shape[4])
     return in_s
 
 def generate_dir2save(opt):
