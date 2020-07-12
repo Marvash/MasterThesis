@@ -13,12 +13,13 @@ def get3D(toConvert):
     tmp = toConvert[0][:][:][:]
     #plt.imshow(tmp.permute((1, 2, 0)).cpu().numpy())
     #plt.show()
-    expandedTensor = torch.zeros(toConvert.shape[0], 1, toConvert.shape[2], toConvert.shape[3], toConvert.shape[3])
+    expandedTensor = torch.full((toConvert.shape[0], 1, toConvert.shape[2], toConvert.shape[3], toConvert.shape[3]), 1)
     #print(expandedTensor.shape)
     for i in range(0, toConvert.shape[2]):
         for j in range(0, toConvert.shape[3]):
             Zcoord = (math.floor(toConvert.shape[3]/2)-1)
             expandedTensor[0][0][i][j][Zcoord] = toConvert[0][0][i][j]#(1 - norm01(toConvert[0][0][i][j])) > 0.5
+            #print(toConvert[0][0][i][j])
             expandedTensor[0][0][i][j][Zcoord+1] = expandedTensor[0][0][i][j][Zcoord]
             expandedTensor[0][0][i][j][Zcoord+2] = expandedTensor[0][0][i][j][Zcoord]
             expandedTensor[0][0][i][j][Zcoord-1] = expandedTensor[0][0][i][j][Zcoord]
@@ -28,12 +29,16 @@ def get3D(toConvert):
     #print(expandedTensor[0][0][39][32][31])
     #plt.imshow(tmp.permute((1, 2, 0)).cpu().numpy())
     #plt.show()
-    tmp = expandedTensor[0][0][:][:][:]
+    tmp = expandedTensor[0][0][:][:][:].clone()
+    for i in range(0, expandedTensor.shape[2]):
+        for j in range(0, expandedTensor.shape[3]):
+            for k in range(0, expandedTensor.shape[4]):
+                tmp[i][j][k] = -300#expandedTensor[0][0][i][j][k] < 0
     #fig = plt.figure()
     #ax = fig.gca(projection='3d')
     #ax.voxels(tmp, edgecolor='k')
 
-    plt.show()
+    #plt.show()
     return expandedTensor
     
 def get3DPyramid(real,reals,opt):
@@ -46,13 +51,21 @@ def get3DPyramid(real,reals,opt):
         print(real.shape)
         curr_real = imresize3D(real,scale,opt)
         print(curr_real.shape)
-        #tmp = curr_real[0][0][:][:][:]
-        #fig = plt.figure()
-        #ax = fig.gca(projection='3d')
-        #ax.voxels(tmp, edgecolor='k')
-        #plt.show()
+        #print(curr_real)
+        #visualizeVolume(curr_real)
         reals.append(curr_real)
     return reals
     
 def norm01(num):
     return (num+1)/(2)
+    
+def visualizeVolume(tensor):
+    tmp = tensor[0][0][:][:][:].clone()
+    for i in range(0, tensor.shape[2]):
+        for j in range(0, tensor.shape[3]):
+            for k in range(0, tensor.shape[4]):
+                tmp[i][j][k] = tensor[0][0][i][j][k] < 0
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
+    ax.voxels(tmp, edgecolor='k')
+    plt.show()

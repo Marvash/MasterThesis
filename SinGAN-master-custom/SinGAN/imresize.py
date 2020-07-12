@@ -49,6 +49,7 @@ def np2torch3D(x,opt):
         x = move_to_gpu(x)
     x = x.type(torch.cuda.FloatTensor) if not(opt.not_cuda) else x.type(torch.FloatTensor)
     #x = x.type(torch.cuda.FloatTensor)
+    x = norm(x)
     return x
 
 def torch2uint8(x):

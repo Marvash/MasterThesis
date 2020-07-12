@@ -20,7 +20,11 @@ def train(opt,Gs,Zs,reals,NoiseAmp):
     in_s = 0
     scale_num = 0
     #real = imresize3D(real_,opt.scale1,opt)
+    #print(real3D_)
+    #customFuncs.visualizeVolume(real3D_)
     real3D = imresize3D(real3D_,opt.scale1,opt)
+    #customFuncs.visualizeVolume(real3D)
+    #print(real3D)
     #reals = functions.creat_reals_pyramid(real,reals,opt)
     reals3D = customFuncs.get3DPyramid(real3D,reals,opt)
     nfc_prev = 0
