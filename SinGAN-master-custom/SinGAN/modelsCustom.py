@@ -59,5 +59,8 @@ class GeneratorConcatSkip2CleanAdd(nn.Module):
         x = self.body(x)
         x = self.tail(x)
         ind = int((y.shape[2]-x.shape[2])/2)
+        #print("Ind")
+        #print(ind)
         y = y[:,:,ind:(y.shape[2]-ind),ind:(y.shape[3]-ind),ind:(y.shape[4]-ind)]
+        #print(y.shape)
         return x+y

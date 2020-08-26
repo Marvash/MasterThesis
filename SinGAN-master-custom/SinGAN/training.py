@@ -14,7 +14,12 @@ def train(opt,Gs,Zs,reals,NoiseAmp):
     real_ = functions.read_image(opt)
     print("real")
     print(real_.shape)
-    real3D_ = customFuncs.get3D(real_)
+    #real3D_ = customFuncs.get3D(real_)
+    #real3D_ = customFuncs.genImage3Dv2((1,1,40,40,40))
+    #real3D_ = customFuncs.genImageFunc((1,1,40,40,40))
+    real3D_ = customFuncs.genImageSpyral((1,1,40,40,40))
+    customFuncs.save3DFig(real3D_, "TrainedModels/piskelSmaller/_original.pt")
+    real3D_ = functions.move_to_gpu(real3D_)
     print("real3D")
     print(real3D_.shape)
     in_s = 0
@@ -62,7 +67,7 @@ def train(opt,Gs,Zs,reals,NoiseAmp):
 
         torch.save(Zs, '%s/Zs.pth' % (opt.out_))
         torch.save(Gs, '%s/Gs.pth' % (opt.out_))
-        torch.save(reals, '%s/reals.pth' % (opt.out_))
+        torch.save(reals3D, '%s/reals.pth' % (opt.out_))
         torch.save(NoiseAmp, '%s/NoiseAmp.pth' % (opt.out_))
 
         scale_num+=1
@@ -94,7 +99,7 @@ def train_single_scale(netD,netG,reals3D,Gs,Zs,in_s,NoiseAmp,opt,centers=None):
     
     #fixed_noise = functions.generate_noise([opt.nc_z,opt.nzx,opt.nzy],device=opt.device) #noise same shape of real
     fixed_noise3D = functions.generate_noise3D([1, opt.nzx, opt.nzy, opt.nzz], device=opt.device)
-    #print(fixed_noise)
+    #print(fixed_noise3D)
     #z_opt = torch.full(fixed_noise.shape, 0, device=opt.device)
     z_opt3D = torch.full(fixed_noise3D.shape, 0, device=opt.device)
     #print(z_opt)
@@ -144,6 +149,10 @@ def train_single_scale(netD,netG,reals3D,Gs,Zs,in_s,NoiseAmp,opt,centers=None):
             # train with real
             netD.zero_grad()
 
+            #print("Real")
+            #print(real.shape)
+            #print(real)
+            #customFuncs.visualizeVolume(real)
             output = netD(real).to(opt.device)
             #D_real_map = output.detach()
             errD_real = -output.mean()#-a
@@ -177,6 +186,7 @@ def train_single_scale(netD,netG,reals3D,Gs,Zs,in_s,NoiseAmp,opt,centers=None):
                     z_prev3D = draw_concat3D(Gs,Zs,reals3D,NoiseAmp,in_s,'rec',opt) # RECONSTRUCTION LOSS
                     criterion = nn.MSELoss()
                     RMSE = torch.sqrt(criterion(real, z_prev3D))
+                    print(RMSE)
                     opt.noise_amp = opt.noise_amp_init*RMSE
                     #z_prev = m_image(z_prev)
                     z_prev3D = nn.functional.pad(z_prev3D, (5, 5, 5, 5, 5, 5), 'constant', 0)
@@ -197,8 +207,10 @@ def train_single_scale(netD,netG,reals3D,Gs,Zs,in_s,NoiseAmp,opt,centers=None):
 
             #print("Noise")
             #print(noise3D.shape)
+            #print(noise3D)
             #print("prev")
             #print(prev.shape)
+            #customFuncs.visualizeVolume(noise3D)
             fake = netG(noise3D.detach(),prev) #error here
             #print("fake")
             #print(fake.shape)
@@ -208,6 +220,7 @@ def train_single_scale(netD,netG,reals3D,Gs,Zs,in_s,NoiseAmp,opt,centers=None):
             D_G_z = output.mean().item()
 
             gradient_penalty = functions.calc_gradient_penalty(netD, real, fake, opt.lambda_grad, opt.device)
+            #print(gradient_penalty)
             gradient_penalty.backward()
 
             errD = errD_real + errD_fake + gradient_penalty
@@ -247,6 +260,8 @@ def train_single_scale(netD,netG,reals3D,Gs,Zs,in_s,NoiseAmp,opt,centers=None):
 
         if epoch % 25 == 0 or epoch == (opt.niter-1):
             print('scale %d:[%d/%d]' % (len(Gs), epoch, opt.niter))
+            print(errG)
+            print(errD)
 
         if epoch % 500 == 0 or epoch == (opt.niter-1):
             #plt.imsave('%s/fake_sample.png' %  (opt.outf), functions.convert_image_np(fake.detach()), vmin=0, vmax=1)
@@ -265,6 +280,18 @@ def train_single_scale(netD,netG,reals3D,Gs,Zs,in_s,NoiseAmp,opt,centers=None):
         schedulerG.step()
 
     functions.save_networks(netG,netD,z_opt3D,opt)
+    #in_sl = torch.full(real.shape, 0, device=opt.device)
+    #for i in range(0, 5):
+        #z_currl = functions.generate_noise3D([1,opt.nzx,opt.nzy,opt.nzz], device=opt.device)
+        #z_currl = z_currl.expand(1,1,z_currl.shape[2],z_currl.shape[3],z_currl.shape[4])
+        #z_curr = m(z_curr)
+        #z_currl = nn.functional.pad(z_currl, (5, 5, 5, 5, 5, 5), 'constant', 0)
+        #I_prev = in_sl.clone()
+        #I_prev = nn.functional.pad(I_prev, (5, 5, 5, 5, 5, 5), 'constant', 0)
+        #z_in = opt.noise_amp*(z_currl)+I_prev
+        #I_curr = netG(z_in.detach(),I_prev)
+        #print(I_curr)
+        #customFuncs.visualizeVolume(I_curr)
     return z_opt3D,in_s,netG  
 
 def draw_concat3D(Gs,Zs,reals3D,NoiseAmp,in_s,mode,opt):

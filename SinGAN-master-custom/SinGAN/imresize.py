@@ -43,7 +43,7 @@ def np2torch3D(x,opt):
     #for i in range(0, x.shape[2]):
     #    for j in range(0, x.shape[3]):
     #        for k in range(0, x.shape[3]):
-    #            x[0][0][i][j][k] = x[0][0][i][j][k] > 0.5
+    #            x[0][0][i][j][k] = x[0][0][i][j][k]
     x = torch.from_numpy(x)
     if not (opt.not_cuda):
         x = move_to_gpu(x)

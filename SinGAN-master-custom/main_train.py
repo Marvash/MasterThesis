@@ -20,6 +20,7 @@ if __name__ == '__main__':
     if (os.path.exists(dir2save)):
         try:
             shutil.rmtree(dir2save)
+            os.makedirs(dir2save)
         except OSError:
             pass
         

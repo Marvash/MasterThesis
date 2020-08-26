@@ -19,6 +19,7 @@ import imageio
 import matplotlib.pyplot as plt
 from SinGAN.training import *
 from config import get_arguments
+import SinGAN.customFuncs as customFuncs
 
 def generate_gif(Gs,Zs,reals,NoiseAmp,opt,alpha=0.1,beta=0.9,start_scale=2,fps=10):
 
@@ -106,16 +107,16 @@ def SinGAN_generate(Gs,Zs,reals,NoiseAmp,opt,in_s=None,scale_v=1,scale_h=1,scale
                 z_curr = functions.generate_noise3D([1,nzx,nzy,nzz], device=opt.device)
                 z_curr = z_curr.expand(1,1,z_curr.shape[2],z_curr.shape[3],z_curr.shape[4])
                 #z_curr = m(z_curr)
-                nn.functional.pad(z_curr, (5, 5, 5, 5, 5, 5), 'constant', 0)
+                z_curr = nn.functional.pad(z_curr, (5, 5, 5, 5, 5, 5), 'constant', 0)
             else:
                 z_curr = functions.generate_noise3D([1,nzx,nzy,nzz], device=opt.device)
                 #z_curr = m(z_curr)
-                nn.functional.pad(z_curr, (5, 5, 5, 5, 5, 5), 'constant', 0)
+                z_curr = nn.functional.pad(z_curr, (5, 5, 5, 5, 5, 5), 'constant', 0)
 
             if images_prev == []:
                 #I_prev = m(in_s)
-                I_prev = in_s
-                nn.functional.pad(I_prev, (5, 5, 5, 5, 5, 5), 'constant', 0)
+                I_prev = in_s.clone()
+                I_prev = nn.functional.pad(I_prev, (5, 5, 5, 5, 5, 5), 'constant', 0)
                 #I_prev = m(I_prev)
                 #I_prev = I_prev[:,:,0:z_curr.shape[2],0:z_curr.shape[3]]
                 #I_prev = functions.upsampling(I_prev,z_curr.shape[2],z_curr.shape[3])
@@ -123,31 +124,20 @@ def SinGAN_generate(Gs,Zs,reals,NoiseAmp,opt,in_s=None,scale_v=1,scale_h=1,scale
                 I_prev = images_prev[i]
                 I_prev = imresize3D(I_prev,1/opt.scale_factor, opt)
                 if opt.mode != "SR":
-                    I_prev = I_prev[:, :, 0:round(scale_v * reals[n].shape[2]), 0:round(scale_h * reals[n].shape[3]), 0:round(scale_z * reals[n].shape[4])]
+                    I_prev = I_prev[:, :, 0:round(scale_v * reals[n].shape[2]), 0:round(scale_h * reals[n].shape[3]), 0:round(scale_z * reals[n].shape[4])].clone()
                     #I_prev = m(I_prev)
-                    nn.functional.pad(I_prev, (5, 5, 5, 5, 5, 5), 'constant', 0)
+                    I_prev = nn.functional.pad(I_prev, (5, 5, 5, 5, 5, 5), 'constant', 0)
                     I_prev = I_prev[:,:,0:z_curr.shape[2],0:z_curr.shape[3],0:z_curr.shape[4]]
                     I_prev = functions.upsampling3D(I_prev,z_curr.shape[2],z_curr.shape[3],z_curr.shape[4])
                 else:
                     #I_prev = m(I_prev)
-                    nn.functional.pad(I_prev, (5, 5, 5, 5, 5, 5), 'constant', 0)
+                    I_prev = nn.functional.pad(I_prev, (5, 5, 5, 5, 5, 5), 'constant', 0)
                     
             if n < gen_start_scale:
                 z_curr = Z_opt
                 
             z_in = noise_amp*(z_curr)+I_prev
             I_curr = G(z_in.detach(),I_prev)
-            for i in range(0, I_curr.shape[2]):
-                for j in range(0, I_curr.shape[3]):
-                    for k in range(0, I_curr.shape[3]):
-                        I_curr[0][0][i][j][k] = I_curr[0][0][i][j][k] < 0
-            print(I_curr)
-            tmp = I_curr[0][0][:][:][:]
-            fig = plt.figure()
-            ax = fig.gca(projection='3d')
-            ax.voxels(tmp, edgecolor='k')
-            
-            plt.show()
             
             if n == len(reals)-1:
                 if opt.mode == 'train':
@@ -158,7 +148,12 @@ def SinGAN_generate(Gs,Zs,reals,NoiseAmp,opt,in_s=None,scale_v=1,scale_h=1,scale
                     os.makedirs(dir2save)
                 except OSError:
                     pass
-                #if (opt.mode != "harmonization") & (opt.mode != "editing") & (opt.mode != "SR") & (opt.mode != "paint2image"):
+                if (opt.mode != "harmonization") & (opt.mode != "editing") & (opt.mode != "SR") & (opt.mode != "paint2image"):
+                    print(I_curr.shape)
+                    print(I_curr)
+                    #customFuncs.visualizeVolume(I_curr.detach())
+                    file_name = '%s/%d.pt' % (dir2save, i)
+                    customFuncs.save3DFig(I_curr, file_name)
                     #plt.imsave('%s/%d.png' % (dir2save, i), functions.convert_image_np(I_curr.detach()), vmin=0,vmax=1)
                     #plt.imsave('%s/%d_%d.png' % (dir2save,i,n),functions.convert_image_np(I_curr.detach()), vmin=0, vmax=1)
                     #plt.imsave('%s/in_s.png' % (dir2save), functions.convert_image_np(in_s), vmin=0,vmax=1)

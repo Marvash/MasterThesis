@@ -166,6 +166,7 @@ def calc_gradient_penalty(netD, real_data, fake_data, LAMBDA, device):
                               grad_outputs=torch.ones(disc_interpolates.size()).to(device),#.cuda(), #if use_cuda else torch.ones(
                                   #disc_interpolates.size()),
                               create_graph=True, retain_graph=True, only_inputs=True)[0]
+    #print(gradients.shape)
     #LAMBDA = 1
     gradient_penalty = ((gradients.norm(2, dim=1) - 1) ** 2).mean() * LAMBDA
     return gradient_penalty
