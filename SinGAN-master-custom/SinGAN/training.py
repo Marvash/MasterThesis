@@ -11,14 +11,14 @@ from SinGAN.imresize import imresize3D
 import SinGAN.customFuncs as customFuncs
 
 def train(opt,Gs,Zs,reals,NoiseAmp):
-    real_ = functions.read_image(opt)
+    real3D_ = functions.read_image3D(opt)
     print("real")
-    print(real_.shape)
+    print(real3D_.shape)
     #real3D_ = customFuncs.get3D(real_)
     #real3D_ = customFuncs.genImage3Dv2((1,1,40,40,40))
     #real3D_ = customFuncs.genImageFunc((1,1,40,40,40))
-    real3D_ = customFuncs.genImageSpyral((1,1,40,40,40))
-    customFuncs.save3DFig(real3D_, "TrainedModels/piskelSmaller/_original.pt")
+    #real3D_ = customFuncs.genImageSpyral((1,1,40,40,40))
+    #customFuncs.save3DFig(real3D_, "TrainedModels/piskelSmaller/_original.pt")
     real3D_ = functions.move_to_gpu(real3D_)
     print("real3D")
     print(real3D_.shape)
