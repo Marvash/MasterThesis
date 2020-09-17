@@ -9,17 +9,29 @@ import sys
 import customFuncs
 
 
-size = 40
-toRtn = torch.full((1,1,size,size,size), 1)
-for i in range(0, size):
-    for j in range(0, size):
-        for k in range(0, round(size/5)):
-            toRtn[0][0][i][j][k] = -1
-for l in range(0, 20):
-    loc = (random.randrange(8,35),random.randrange(8,35),random.randrange(round(size/5),35))
+imgSize = 40
+cubeSize = 8
+numCubes = 20
+toRtn = torch.full((1,1,imgSize,imgSize,imgSize), 1)
+offset = round(cubeSize/2)+1
+for l in range(0, numCubes):
+    loc = (random.randrange(offset, imgSize-offset-1),random.randrange(offset, imgSize-offset-1),random.randrange(offset, imgSize-offset-1))
     for i in range(loc[0]-4, loc[0]+4):
         for j in range(loc[1]-4, loc[1]+4):
             for k in range(loc[2]-4, loc[2]+4):
                 toRtn[0][0][i][j][k] = -1
 customFuncs.visualizeVolume(toRtn)
-customFuncs.save3DFig(toRtn, "../../Input/Images3D/original.pt")
+copyCounter = 0
+prepath = "../../Input/Images3D/cubes"
+tmppath = prepath + ".pt"
+while(os.path.exists(tmppath)):
+    try:
+        #shutil.rmtree(dir2save)
+        copyCounter += 1
+        tmppath = prepath + "_" + str(copyCounter) + ".pt"
+    except OSError:
+        pass
+try:
+    customFuncs.save3DFig(toRtn, tmppath)
+except OSError:
+    pass
