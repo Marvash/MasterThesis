@@ -12,7 +12,7 @@ import customFuncs
 imgSize = 40
 spyralingfactor = 10
 spyralthickness = 2
-numspyrals = 3
+numspyrals = 5
 toRtn = torch.full((1,1,imgSize,imgSize,imgSize), 1)
 interval = 360.0/numspyrals
 intervalcurrent = 0

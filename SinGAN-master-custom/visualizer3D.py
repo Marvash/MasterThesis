@@ -14,13 +14,10 @@ from os.path import isfile, join
 parser = ArgumentParser()
 parser.add_argument('--input_name', help='input fig', default='')
 opt = parser.parse_args()
-pathName = "piskelSmaller"
+pathName = opt.input_name
 completeName = 'Output/RandomSamples/'+pathName+'/gen_start_scale=0/'
-if opt.input_name == '':
-    onlyfiles = [f for f in listdir(completeName) if isfile(join(completeName, f))]
-    for file in onlyfiles:
-        tensor = torch.load(completeName+file)
-        customFuncs.visualizeVolume(tensor)
-else:
-    tensor = torch.load(completeName+opt.input_name)
+#completeName = 'Input/Images3D/'
+onlyfiles = [f for f in listdir(completeName) if isfile(join(completeName, f))]
+for file in onlyfiles:
+    tensor = torch.load(completeName+file)
     customFuncs.visualizeVolume(tensor)
