@@ -15,9 +15,13 @@ parser = ArgumentParser()
 parser.add_argument('--input_name', help='input fig', default='')
 opt = parser.parse_args()
 pathName = opt.input_name
-completeName = 'Output/RandomSamples/'+pathName+'/gen_start_scale=0/'
-#completeName = 'Input/Images3D/'
-onlyfiles = [f for f in listdir(completeName) if isfile(join(completeName, f))]
-for file in onlyfiles:
-    tensor = torch.load(completeName+file)
-    customFuncs.visualizeVolume(tensor)
+#completeName = 'Output/RandomSamples/'+pathName+'/gen_start_scale=0/'
+#<completeName = 'Output/SR/2.0/'
+completeName = 'Input/Images3D/'
+#completeName = 'Evaluation/JSONVoxels/'
+#onlyfiles = [f for f in listdir(completeName) if isfile(join(completeName, f))]
+#for file in onlyfiles:
+file = pathName
+tensor = torch.load(completeName+file)
+print(tensor.shape)
+customFuncs.visualizeVolume(tensor)

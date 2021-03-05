@@ -10,7 +10,7 @@ import customFuncs
 import json
 
 imgSize = 40
-jsonFile = open("../../JSONModels/abstractObject.json")
+jsonFile = open("../../Evaluation/JSONVoxels/rockSample0.json")
 jsonObj = json.load(jsonFile)
 offsetWidth = math.floor((imgSize - int(jsonObj["dimension"][0]["width"])) / 2.0)
 offsetDepth = math.floor((imgSize - int(jsonObj["dimension"][0]["depth"])) / 2.0)
@@ -24,11 +24,12 @@ for jsonVoxel in jsonObj["voxels"]:
     y = int(jsonVoxel["y"])
     z = int(jsonVoxel["z"])
     #print(str(x) + " " + str(y) + " " + str(z))
-    toRtn[0][0][x + offsetWidth][z + offsetDepth][y + offsetHeight] = -1
+    if "value" not in jsonVoxel or jsonVoxel["value"] < 0:
+        toRtn[0][0][x + offsetWidth][z + offsetDepth][y + offsetHeight] = -1
 
 customFuncs.visualizeVolume(toRtn)
 copyCounter = 0
-prepath = "../../Input/Images3D/abstractObject"
+prepath = "../../Evaluation/JSONVoxels/rockSample0"
 tmppath = prepath + ".pt"
 while(os.path.exists(tmppath)):
     try:
