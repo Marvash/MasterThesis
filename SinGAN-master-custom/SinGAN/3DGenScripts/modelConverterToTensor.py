@@ -9,8 +9,9 @@ import sys
 import customFuncs
 import json
 
-imgSize = 40
-jsonFile = open("../../Evaluation/JSONVoxels/rockSample0.json")
+#imgSize = 40
+imgSize = 80
+jsonFile = open("../../JSONModels/crystalcluster2.json")
 jsonObj = json.load(jsonFile)
 offsetWidth = math.floor((imgSize - int(jsonObj["dimension"][0]["width"])) / 2.0)
 offsetDepth = math.floor((imgSize - int(jsonObj["dimension"][0]["depth"])) / 2.0)
@@ -29,7 +30,7 @@ for jsonVoxel in jsonObj["voxels"]:
 
 customFuncs.visualizeVolume(toRtn)
 copyCounter = 0
-prepath = "../../Evaluation/JSONVoxels/rockSample0"
+prepath = "../../Input/Images3D/crystalCluster2"
 tmppath = prepath + ".pt"
 while(os.path.exists(tmppath)):
     try:

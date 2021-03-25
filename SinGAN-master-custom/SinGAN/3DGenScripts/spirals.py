@@ -9,7 +9,7 @@ import sys
 import customFuncs
 
 
-imgSize = 40
+imgSize = 80 #40
 spyralingfactor = 10
 spyralthickness = 2
 numspyrals = 5
@@ -44,7 +44,7 @@ for z in range(0, numspyrals):
                     toRtn[0][0][x][y+j][i] = -1
 customFuncs.visualizeVolume(toRtn)
 copyCounter = 0
-prepath = "../../Input/Images3D/spyrals"
+prepath = "../../Input/Images3D/spyrals2"
 tmppath = prepath + ".pt"
 while(os.path.exists(tmppath)):
     try:

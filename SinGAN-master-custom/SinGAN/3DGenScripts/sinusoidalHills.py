@@ -28,7 +28,7 @@ for i in range(0, imgSize):
                 toRtn[0][0][i][j][z+startingPoint+k] = -1
 customFuncs.visualizeVolume(toRtn)
 copyCounter = 0
-prepath = "../../Input/Images3D/sinusoidalWaves"
+prepath = "../../Input/Images3D/sinusoidalWavest"
 tmppath = prepath + ".pt"
 while(os.path.exists(tmppath)):
     try:

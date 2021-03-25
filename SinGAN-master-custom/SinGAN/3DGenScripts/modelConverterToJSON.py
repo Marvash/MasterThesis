@@ -15,8 +15,9 @@ from os.path import isfile, join
 #input = customFuncs.load3DFig("../../Dataset/Rocks/RandomlyGeneratedSamples/5.pt")
 #input = customFuncs.load3DFig("../../Dataset/Cubes/cubes.pt")
 inputFile = "";
-name = "trees"
-partialInput = "../../Dataset/Trees/";
+name = "0"
+partialInput = "../../Output/SR/crystalCluster/2.0/";
+#partialInput = "../../Input/Images3D/";
 inputFile = partialInput + name + ".pt";
 input = customFuncs.load3DFig(inputFile);
 inputSize = input.size();
@@ -32,7 +33,7 @@ for x in range(0, xSize):
             outObject["voxels"].append({"x":x,"y":y,"z":z,"value":input[0][0][x][z][y].item()});
 
 copyCounter = 0
-prepath = "../../Evaluation/Trees/";
+prepath = "../../Evaluation/SR/";
 if not os.path.exists(prepath):
     os.makedirs(prepath);
 tmppath = prepath + name + ".json"
